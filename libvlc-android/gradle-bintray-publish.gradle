@@ -1,0 +1,139 @@
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.dcendents.android-maven'
+
+group = GROUP
+version = VERSION_NAME
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+android.libraryVariants.all { variant ->
+    if (variant.name == 'release') {
+        task("generate${variant.name.capitalize()}Javadoc", type: Javadoc) {
+            title = "Documentation for $project.android.defaultConfig.versionName v$project.android.defaultConfig.versionCode"
+            description = "Generates Javadoc for $variant.name."
+            group = 'Documentation'
+            source = variant.javaCompile.source
+            classpath = files(variant.javaCompile.classpath.files, project.android.getBootClasspath(), variant.javaCompile.destinationDir)
+
+            options {
+                links "http://docs.oracle.com/javase/7/docs/api/"
+                linksOffline "https://developer.android.com/reference/", "${android.sdkDirectory}/docs/reference"
+                noTimestamp true
+                encoding "utf-8"
+            }
+
+            exclude '**/BuildConfig.java'
+            exclude '**/R.java'
+        }
+
+        task("generate${variant.name.capitalize()}JavadocJar", type: Jar) {
+            dependsOn "generate${variant.name.capitalize()}Javadoc"
+            description "Bundles Javadoc into zip for $variant.name."
+            classifier = 'javadoc'
+            from tasks["generate${variant.name.capitalize()}Javadoc"]
+        }
+
+        artifacts {
+            archives tasks.getByName("generate${variant.name.capitalize()}JavadocJar")
+        }
+    }
+}
+
+install {
+    repositories.mavenInstaller {
+        configuration = configurations.archives
+
+        pom {
+            groupId = GROUP
+            artifactId = POM_ARTIFACT_ID
+            version = VERSION_NAME
+
+            project {
+                name POM_NAME
+                description = POM_DESCRIPTION
+                url POM_URL
+                inceptionYear POM_YEAR
+                packaging POM_PACKAGING
+
+                licenses {
+                    license {
+                        name POM_LICENCE_NAME
+                        url POM_LICENCE_URL
+                        distribution POM_LICENCE_DIST
+                    }
+                }
+                developers {
+                    developer {
+                        id POM_DEVELOPER_ID
+                        name POM_DEVELOPER_NAME
+                        email POM_DEVELOPER_EMAIL
+                    }
+                }
+                scm {
+                    url POM_SCM_URL
+                    connection POM_SCM_CONNECTION
+                    developerConnection POM_SCM_DEV_CONNECTION
+                }
+                issueManagement {
+                    system = POM_ISSUE_SYSTEM
+                    url = POM_ISSUE_URL
+                }
+            }
+        }
+    }
+}
+
+bintray {
+    user = properties.getProperty('bintray.user') != null ?
+            properties.getProperty('bintray.user') : System.getenv('BINTRAY_USER')
+    key = properties.getProperty('bintray.apiKey') != null ?
+            properties.getProperty('bintray.apiKey') : System.getenv('BINTRAY_API_KEY')
+
+    configurations = ['archives']
+    dryRun = false  //[Default: false] Whether to run this as dry-run, without deploying
+    publish = true  //[Default: false] Whether version should be auto published after an upload
+    override = false    //[Default: false] Whether to override version artifacts already published
+
+    pkg {
+        repo = 'maven'
+        name = POM_ARTIFACT_ID
+        desc = POM_DESCRIPTION
+        websiteUrl = POM_URL
+        issueTrackerUrl = POM_ISSUE_URL
+        vcsUrl = POM_SCM_URL
+        licenses = BINTRAY_ALL_LICENCES
+        labels = BINTRAY_LABELS
+        publicDownloadNumbers = false
+
+        version {
+            name = VERSION_NAME
+            released = new Date()
+            vcsTag = "v${VERSION_NAME}"
+
+            gpg {
+                sign = true
+                passphrase = properties.getProperty('bintray.gpgPassphrase') != null ?
+                        properties.getProperty('bintray.gpgPassphrase') : System.getenv('BINTRAY_GPG_PASSPHRASE')
+            }
+        }
+
+    }
+}
+
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
