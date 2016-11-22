@@ -2,7 +2,7 @@ bintray.user=your_username
 bintray.apiKey=your_api_key
 bintray.gpgPassphrase=your_gpg_passphrase
 
-KEYSTORE_PATH=/path/to/your/keystore
-KEYSTORE_PASSWORD=your_keystore_password
-KEY_ALIAS=your_key_alias
-KEY_PASSWORD=your_key_password
+keystore.path=/path/to/your/keystore
+keystore.password=your_keystore_password
+key.alias=your_key_alias
+key.password=your_key_password
