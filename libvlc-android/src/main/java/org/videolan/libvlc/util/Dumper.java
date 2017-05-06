@@ -30,18 +30,13 @@ import org.videolan.libvlc.MediaPlayer;
 import java.util.ArrayList;
 
 public class Dumper {
-    public interface Listener {
-        void onFinish(boolean success);
-        void onProgress(float progress);
-    }
-
     private final LibVLC mLibVLC;
     private final MediaPlayer mMediaPlayer;
     private final Listener mListener;
-
     /**
      * Create a Dumper that will download an Uri into a local filesystem path
-     * @param uri the Uri to dump
+     *
+     * @param uri      the Uri to dump
      * @param filepath local filesystem path where to dump the Uri
      * @param listener listener in order to be notified when the dump is finished
      */
@@ -59,7 +54,7 @@ public class Dumper {
         options.add("--no-video");
         options.add("--no-audio");
         options.add("--no-spu");
-        options.add("-vvv");
+        options.add("-vv");
         mLibVLC = new LibVLC(null, options);
 
         final Media media = new Media(mLibVLC, uri);
@@ -100,5 +95,11 @@ public class Dumper {
         mMediaPlayer.stop();
         mMediaPlayer.release();
         mLibVLC.release();
+    }
+
+    public interface Listener {
+        void onFinish(boolean success);
+
+        void onProgress(float progress);
     }
 }

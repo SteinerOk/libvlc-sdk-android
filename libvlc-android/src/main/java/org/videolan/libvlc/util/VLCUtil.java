@@ -42,9 +42,25 @@ import java.util.Locale;
 
 public class VLCUtil {
     public final static String TAG = "VLC/LibVLC/Util";
-
+    private static final int EM_386 = 3;
+    private static final int EM_MIPS = 8;
+    private static final int EM_ARM = 40;
+    private static final int EM_X86_64 = 62;
+    private static final int EM_AARCH64 = 183;
+    private static final int ELF_HEADER_SIZE = 52;
+    private static final int SECTION_HEADER_SIZE = 40;
+    private static final int SHT_ARM_ATTRIBUTES = 0x70000003;
+    /**
+     * '*' prefix means it's unsupported
+     */
+    private final static String[] CPU_archs = {"*Pre-v4", "*v4", "*v4T",
+            "v5T", "v5TE", "v5TEJ",
+            "v6", "v6KZ", "v6T2", "v6K", "v7",
+            "*v6-M", "*v6S-M", "*v7E-M", "*v8"};
+    private static final String URI_AUTHORIZED_CHARS = "!'()*";
     private static String errorMsg = null;
     private static boolean isCompatible = false;
+    private static MachineSpecs machineSpecs = null;
 
     public static String getErrorMsg() {
         return errorMsg;
@@ -59,13 +75,10 @@ public class VLCUtil {
     }
 
     @SuppressWarnings("deprecation")
-    @TargetApi(Build.VERSION_CODES.FROYO)
     public static String[] getABIList() {
-        final boolean hasABI2 = Build.VERSION.SDK_INT >= Build.VERSION_CODES.FROYO;
-        final String[] abis = new String[hasABI2 ? 2 : 1];
+        final String[] abis = new String[2];
         abis[0] = android.os.Build.CPU_ABI;
-        if (hasABI2)
-            abis[1] = android.os.Build.CPU_ABI2;
+        abis[1] = android.os.Build.CPU_ABI2;
         return abis;
     }
 
@@ -175,11 +188,13 @@ public class VLCUtil {
             if (br != null)
                 try {
                     br.close();
-                } catch (IOException e) {}
+                } catch (IOException e) {
+                }
             if (fileReader != null)
                 try {
                     fileReader.close();
-                } catch (IOException e) {}
+                } catch (IOException e) {
+                }
         }
         if (processors == 0)
             processors = 1; // possibly borked cpuinfo?
@@ -248,11 +263,13 @@ public class VLCUtil {
             if (br != null)
                 try {
                     br.close();
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
             if (fileReader != null)
                 try {
                     fileReader.close();
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
         }
 
         // Store into MachineSpecs
@@ -276,42 +293,6 @@ public class VLCUtil {
         return machineSpecs;
     }
 
-    private static MachineSpecs machineSpecs = null;
-
-    public static class MachineSpecs {
-        public boolean hasNeon;
-        public boolean hasFpu;
-        public boolean hasArmV6;
-        public boolean hasArmV7;
-        public boolean hasMips;
-        public boolean hasX86;
-        public boolean is64bits;
-        public float bogoMIPS;
-        public int processors;
-        public float frequency; /* in MHz */
-    }
-
-    private static final int EM_386 = 3;
-    private static final int EM_MIPS = 8;
-    private static final int EM_ARM = 40;
-    private static final int EM_X86_64 = 62;
-    private static final int EM_AARCH64 = 183;
-    private static final int ELF_HEADER_SIZE = 52;
-    private static final int SECTION_HEADER_SIZE = 40;
-    private static final int SHT_ARM_ATTRIBUTES = 0x70000003;
-
-    private static class ElfData {
-        ByteOrder order;
-        boolean is64bits;
-        int e_machine;
-        int e_shoff;
-        int e_shnum;
-        int sh_offset;
-        int sh_size;
-        String att_arch;
-        boolean att_fpu;
-    }
-
     @TargetApi(Build.VERSION_CODES.GINGERBREAD)
     private static File searchLibrary(ApplicationInfo applicationInfo) {
         // Search for library path
@@ -321,10 +302,7 @@ public class VLCUtil {
             libraryPaths = property.split(":");
         } else {
             libraryPaths = new String[1];
-            if (AndroidUtil.isGingerbreadOrLater())
-                libraryPaths[0] = applicationInfo.nativeLibraryDir;
-            else
-                libraryPaths[0] = applicationInfo.dataDir + "/lib";
+            libraryPaths[0] = applicationInfo.nativeLibraryDir;
         }
         if (libraryPaths[0] == null) {
             Log.e(TAG, "can't find library path");
@@ -341,12 +319,6 @@ public class VLCUtil {
         Log.e(TAG, "WARNING: Can't find shared library");
         return null;
     }
-
-    /** '*' prefix means it's unsupported */
-    private final static String[] CPU_archs = {"*Pre-v4", "*v4", "*v4T",
-            "v5T", "v5TE", "v5TEJ",
-            "v6", "v6KZ", "v6T2", "v6K", "v7",
-            "*v6-M", "*v6S-M", "*v7E-M", "*v8"};
 
     private static ElfData readLib(File file) {
         RandomAccessFile in = null;
@@ -524,7 +496,54 @@ public class VLCUtil {
     }
 
     /**
+     * VLC authorize only "-._~" in Mrl format, android Uri authorize "_-!.~'()*".
+     * Therefore, decode the characters authorized by Android Uri when creating an Uri from VLC.
+     */
+    public static Uri UriFromMrl(String mrl) {
+        final char array[] = mrl.toCharArray();
+        final StringBuilder sb = new StringBuilder(array.length * 2);
+        for (int i = 0; i < array.length; ++i) {
+            final char c = array[i];
+            if (c == '%') {
+                if (array.length - i >= 3) {
+                    try {
+                        final int hex = Integer.parseInt(new String(array, i + 1, 2), 16);
+                        if (URI_AUTHORIZED_CHARS.indexOf(hex) != -1) {
+                            sb.append((char) hex);
+                            i += 2;
+                            continue;
+                        }
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+            sb.append(c);
+        }
+
+        return Uri.parse(sb.toString());
+    }
+
+    /**
+     * VLC authorize only "-._~" in Mrl format, android Uri authorize "_-!.~'()*".
+     * Therefore, encode the characters authorized by Android Uri when creating a mrl from an Uri.
+     */
+    public static String locationFromUri(Uri uri) {
+        final char array[] = uri.toString().toCharArray();
+        final StringBuilder sb = new StringBuilder(array.length * 2);
+
+        for (final char c : array) {
+            if (URI_AUTHORIZED_CHARS.indexOf(c) != -1)
+                sb.append("%").append(Integer.toHexString(c));
+            else
+                sb.append(c);
+        }
+
+        return sb.toString();
+    }
+
+    /**
      * Get a media thumbnail.
+     *
      * @return a bytearray with the RGBA thumbnail data inside.
      */
     public static byte[] getThumbnail(LibVLC libVLC, Uri uri, int i_width, int i_height) {
@@ -546,4 +565,29 @@ public class VLCUtil {
     }
 
     private static native byte[] nativeGetThumbnail(Media media, int i_width, int i_height);
+
+    public static class MachineSpecs {
+        public boolean hasNeon;
+        public boolean hasFpu;
+        public boolean hasArmV6;
+        public boolean hasArmV7;
+        public boolean hasMips;
+        public boolean hasX86;
+        public boolean is64bits;
+        public float bogoMIPS;
+        public int processors;
+        public float frequency; /* in MHz */
+    }
+
+    private static class ElfData {
+        ByteOrder order;
+        boolean is64bits;
+        int e_machine;
+        int e_shoff;
+        int e_shnum;
+        int sh_offset;
+        int sh_size;
+        String att_arch;
+        boolean att_fpu;
+    }
 }

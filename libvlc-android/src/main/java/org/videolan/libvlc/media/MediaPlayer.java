@@ -35,13 +35,11 @@ import android.view.SurfaceHolder;
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
 
-import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.Map;
 
-public class MediaPlayer
-{
+public class MediaPlayer {
     public static final int MEDIA_ERROR_UNKNOWN = 1;
     public static final int MEDIA_ERROR_SERVER_DIED = 100;
     public static final int MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK = 200;
@@ -66,9 +64,9 @@ public class MediaPlayer
 
     public static final int VIDEO_SCALING_MODE_SCALE_TO_FIT = 1;
     public static final int VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING = 2;
-
-    private Media mCurrentMedia = null;
+    public static final String MEDIA_MIMETYPE_TEXT_SUBRIP = "application/x-subrip";
     private final LibVLC mLibVLC;
+    private Media mCurrentMedia = null;
     private org.videolan.libvlc.MediaPlayer mMediaPlayer;
 
     public MediaPlayer() {
@@ -77,7 +75,7 @@ public class MediaPlayer
     }
 
     public static MediaPlayer create(Context context, Uri uri) {
-        return create (context, uri, null);
+        return create(context, uri, null);
     }
 
     public static MediaPlayer create(Context context, Uri uri, SurfaceHolder holder) {
@@ -184,12 +182,12 @@ public class MediaPlayer
 
     // This is of course, less precise than VLC
     public int getCurrentPosition() {
-        return (int)mMediaPlayer.getTime();
+        return (int) mMediaPlayer.getTime();
     }
 
     // This is of course, less precise than VLC
     public int getDuration() {
-        return (int)mMediaPlayer.getLength();
+        return (int) mMediaPlayer.getLength();
     }
 
     public void setNextMediaPlayer(MediaPlayer next) {
@@ -208,22 +206,22 @@ public class MediaPlayer
     public void setAudioAttributes(AudioAttributes attributes) throws IllegalArgumentException {
     }
 
-    public void setLooping(boolean looping) {
-    }
-
     public boolean isLooping() {
         return false;
     }
 
-    public void setVolume(float leftVolume, float rightVolume) {
-        mMediaPlayer.setVolume( (int)((leftVolume + rightVolume) * 100/2));
+    public void setLooping(boolean looping) {
     }
 
-    public void setAudioSessionId(int sessionId)  throws IllegalArgumentException, IllegalStateException {
+    public void setVolume(float leftVolume, float rightVolume) {
+        mMediaPlayer.setVolume((int) ((leftVolume + rightVolume) * 100 / 2));
     }
 
     public int getAudioSessionId() {
         return 0;
+    }
+
+    public void setAudioSessionId(int sessionId) throws IllegalArgumentException, IllegalStateException {
     }
 
     public void attachAuxEffect(int effectId) {
@@ -232,63 +230,11 @@ public class MediaPlayer
     public void setAuxEffectSendLevel(float level) {
     }
 
-    static public class TrackInfo implements Parcelable {
-
-        public static final int MEDIA_TRACK_TYPE_UNKNOWN = 0;
-        public static final int MEDIA_TRACK_TYPE_VIDEO = 1;
-        public static final int MEDIA_TRACK_TYPE_AUDIO = 2;
-        public static final int MEDIA_TRACK_TYPE_TIMEDTEXT = 3;
-        public static final int MEDIA_TRACK_TYPE_SUBTITLE = 4;
-
-        TrackInfo(Parcel in) {
-        }
-
-        public static final Creator<TrackInfo> CREATOR = new Creator<TrackInfo>() {
-            @Override
-            public TrackInfo createFromParcel(Parcel in) {
-                return new TrackInfo(in);
-            }
-
-            @Override
-            public TrackInfo[] newArray(int size) {
-                return new TrackInfo[size];
-            }
-        };
-
-        public int getTrackType() {
-            return MEDIA_TRACK_TYPE_UNKNOWN;
-        }
-
-        public String getLanguage() {
-            return  "und";
-        }
-
-        public MediaFormat getFormat() {
-            return null;
-        }
-
-        @Override
-        public int describeContents() {
-            return 0;
-        }
-
-        @Override
-        public void writeToParcel(Parcel dest, int flags) {
-        }
-
-        @Override
-        public String toString() {
-            return "";
-        }
-    }
-
     public TrackInfo[] getTrackInfo() throws IllegalStateException {
         //FIXME
         TrackInfo trackInfo[] = new TrackInfo[1];
         return trackInfo;
     }
-
-    public static final String MEDIA_MIMETYPE_TEXT_SUBRIP = "application/x-subrip";
 
     public void addTimedTextSource(String path, String mimeType) {
         mMediaPlayer.addSlave(Media.Slave.Type.Subtitle, path, false);
@@ -317,69 +263,111 @@ public class MediaPlayer
     }
 
     @Override
-    protected void finalize() {}
-
-    public interface OnPreparedListener
-    {
-        void onPrepared(MediaPlayer mp);
+    protected void finalize() {
     }
 
     public void setOnPreparedListener(OnPreparedListener listener) {
     }
 
-    public interface OnCompletionListener
-    {
-        void onCompletion(MediaPlayer mp);
-    }
-
     public void setOnCompletionListener(OnCompletionListener listener) {
-    }
-
-    public interface OnBufferingUpdateListener
-    {
-        void onBufferingUpdate(MediaPlayer mp, int percent);
     }
 
     public void setOnBufferingUpdateListener(OnBufferingUpdateListener listener) {
     }
 
-    public interface OnSeekCompleteListener
-    {
-        public void onSeekComplete(MediaPlayer mp);
-    }
-
     public void setOnSeekCompleteListener(OnSeekCompleteListener listener) {
-    }
-
-    public interface OnVideoSizeChangedListener
-    {
-        public void onVideoSizeChanged(MediaPlayer mp, int width, int height);
     }
 
     public void setOnVideoSizeChangedListener(OnVideoSizeChangedListener listener) {
     }
 
-    public interface OnTimedTextListener
-    {
-        public void onTimedText(MediaPlayer mp, TimedText text);
-    }
-
     public void setOnTimedTextListener(OnTimedTextListener listener) {
-    }
-
-    public interface OnErrorListener
-    {
-        boolean onError(MediaPlayer mp, int what, int extra);
     }
 
     public void setOnErrorListener(OnErrorListener listener) {
     }
 
-    public interface OnInfoListener
-    {
+    public void setOnInfoListener(OnInfoListener listener) {
+    }
+
+    public interface OnPreparedListener {
+        void onPrepared(MediaPlayer mp);
+    }
+
+    public interface OnCompletionListener {
+        void onCompletion(MediaPlayer mp);
+    }
+
+    public interface OnBufferingUpdateListener {
+        void onBufferingUpdate(MediaPlayer mp, int percent);
+    }
+
+    public interface OnSeekCompleteListener {
+        public void onSeekComplete(MediaPlayer mp);
+    }
+
+    public interface OnVideoSizeChangedListener {
+        public void onVideoSizeChanged(MediaPlayer mp, int width, int height);
+    }
+
+    public interface OnTimedTextListener {
+        public void onTimedText(MediaPlayer mp, TimedText text);
+    }
+
+    public interface OnErrorListener {
+        boolean onError(MediaPlayer mp, int what, int extra);
+    }
+
+    public interface OnInfoListener {
         boolean onInfo(MediaPlayer mp, int what, int extra);
     }
 
-    public void setOnInfoListener(OnInfoListener listener) {
+    static public class TrackInfo implements Parcelable {
+
+        public static final int MEDIA_TRACK_TYPE_UNKNOWN = 0;
+        public static final int MEDIA_TRACK_TYPE_VIDEO = 1;
+        public static final int MEDIA_TRACK_TYPE_AUDIO = 2;
+        public static final int MEDIA_TRACK_TYPE_TIMEDTEXT = 3;
+        public static final int MEDIA_TRACK_TYPE_SUBTITLE = 4;
+        public static final Creator<TrackInfo> CREATOR = new Creator<TrackInfo>() {
+            @Override
+            public TrackInfo createFromParcel(Parcel in) {
+                return new TrackInfo(in);
+            }
+
+            @Override
+            public TrackInfo[] newArray(int size) {
+                return new TrackInfo[size];
+            }
+        };
+
+        TrackInfo(Parcel in) {
+        }
+
+        public int getTrackType() {
+            return MEDIA_TRACK_TYPE_UNKNOWN;
+        }
+
+        public String getLanguage() {
+            return "und";
+        }
+
+        public MediaFormat getFormat() {
+            return null;
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+        }
+
+        @Override
+        public String toString() {
+            return "";
+        }
     }
 }
