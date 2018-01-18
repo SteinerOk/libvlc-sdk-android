@@ -65,7 +65,7 @@ public class Media extends VLCObject<Media.Event> {
      */
     public Media(LibVLC libVLC, Uri uri) {
         super(libVLC);
-        nativeNewFromLocation(libVLC, VLCUtil.locationFromUri(uri));
+        nativeNewFromLocation(libVLC, VLCUtil.encodeVLCUri(uri));
         mUri = uri;
     }
 
@@ -568,7 +568,7 @@ public class Media extends VLCObject<Media.Event> {
 
     private native Stats nativeGetStats();
 
-    public interface EventListener extends VLCEvent.Listener<Media.Event> {
+    public interface EventListener extends VLCEvent.Listener<Event> {
     }
 
     public static class Event extends VLCEvent {
@@ -595,7 +595,7 @@ public class Media extends VLCObject<Media.Event> {
         /**
          * Get the ParsedStatus in case of {@link Event#ParsedChanged} event
          *
-         * @return {@link Media.ParsedStatus}
+         * @return {@link ParsedStatus}
          */
         public int getParsedStatus() {
             return (int) arg1;
@@ -695,6 +695,7 @@ public class Media extends VLCObject<Media.Event> {
         public final int bitrate;
         public final String language;
         public final String description;
+
         private Track(int type, String codec, String originalCodec, int id, int profile,
                       int level, int bitrate, String language, String description) {
             this.type = type;
@@ -744,6 +745,7 @@ public class Media extends VLCObject<Media.Event> {
         public final int frameRateDen;
         public final int orientation;
         public final int projection;
+
         private VideoTrack(String codec, String originalCodec, int id, int profile,
                            int level, int bitrate, String language, String description,
                            int height, int width, int sarNum, int sarDen, int frameRateNum, int frameRateDen,
@@ -841,6 +843,7 @@ public class Media extends VLCObject<Media.Event> {
          */
         public final int priority;
         public final String uri;
+
         public Slave(int type, int priority, String uri) {
             this.type = type;
             this.priority = priority;

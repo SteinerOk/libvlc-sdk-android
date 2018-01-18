@@ -29,6 +29,7 @@ public class MediaList extends VLCObject<MediaList.Event> {
     private final SparseArray<Media> mMediaArray = new SparseArray<Media>();
     private int mCount = 0;
     private boolean mLocked = false;
+
     /**
      * Create a MediaList from libVLC
      *
@@ -39,6 +40,7 @@ public class MediaList extends VLCObject<MediaList.Event> {
         nativeNewFromLibVlc(libVLC);
         init();
     }
+
     /**
      * @param md Should not be released
      */
@@ -103,18 +105,18 @@ public class MediaList extends VLCObject<MediaList.Event> {
                 index = (int) arg1;
                 if (index != -1) {
                     final Media media = insertMediaFromEvent(index);
-                    event = new Event(eventType, media, index);
+                    event = new Event(eventType, media, true, index);
                 }
                 break;
             case Event.ItemDeleted:
                 index = (int) arg1;
                 if (index != -1) {
                     final Media media = removeMediaFromEvent(index);
-                    event = new Event(eventType, media, index);
+                    event = new Event(eventType, media, false, index);
                 }
                 break;
             case Event.EndReached:
-                event = new Event(eventType, null, -1);
+                event = new Event(eventType, null, false, -1);
                 break;
         }
         mLocked = false;
@@ -186,7 +188,7 @@ public class MediaList extends VLCObject<MediaList.Event> {
 
     private native void nativeUnlock();
 
-    public interface EventListener extends VLCEvent.Listener<MediaList.Event> {
+    public interface EventListener extends VLCEvent.Listener<Event> {
     }
 
     public static class Event extends VLCEvent {
@@ -198,18 +200,26 @@ public class MediaList extends VLCObject<MediaList.Event> {
         public static final int EndReached = 0x204;
 
         /**
-         * The media can be already released. If it's released, cached attributes are still
-         * available (like media.getMrl()).
-         * You should call {@link Media#retain()} and check the return value
-         * before calling media native methods.
+         * In case of ItemDeleted, the media will be already released. If it's released, cached
+         * attributes are still available (like {@link Media#getUri()}}).
          */
         public final Media media;
         public final int index;
+        private final boolean retain;
 
-        protected Event(int type, Media media, int index) {
+        protected Event(int type, Media media, boolean retain, int index) {
             super(type);
+            if (retain && (media == null || !media.retain()))
+                throw new IllegalStateException("invalid media reference");
             this.media = media;
+            this.retain = retain;
             this.index = index;
+        }
+
+        @Override
+        void release() {
+            if (retain)
+                media.release();
         }
     }
 }

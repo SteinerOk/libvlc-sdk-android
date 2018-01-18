@@ -25,14 +25,15 @@ import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -57,7 +58,7 @@ public class VLCUtil {
             "v5T", "v5TE", "v5TEJ",
             "v6", "v6KZ", "v6T2", "v6K", "v7",
             "*v6-M", "*v6S-M", "*v7E-M", "*v8"};
-    private static final String URI_AUTHORIZED_CHARS = "!'()*";
+    private static final String URI_AUTHORIZED_CHARS = "'()*";
     private static String errorMsg = null;
     private static boolean isCompatible = false;
     private static MachineSpecs machineSpecs = null;
@@ -77,8 +78,8 @@ public class VLCUtil {
     @SuppressWarnings("deprecation")
     public static String[] getABIList() {
         final String[] abis = new String[2];
-        abis[0] = android.os.Build.CPU_ABI;
-        abis[1] = android.os.Build.CPU_ABI2;
+        abis[0] = Build.CPU_ABI;
+        abis[1] = Build.CPU_ABI2;
         return abis;
     }
 
@@ -185,16 +186,8 @@ public class VLCUtil {
             }
         } catch (IOException ignored) {
         } finally {
-            if (br != null)
-                try {
-                    br.close();
-                } catch (IOException e) {
-                }
-            if (fileReader != null)
-                try {
-                    fileReader.close();
-                } catch (IOException e) {
-                }
+            close(br);
+            close(fileReader);
         }
         if (processors == 0)
             processors = 1; // possibly borked cpuinfo?
@@ -260,16 +253,8 @@ public class VLCUtil {
             Log.w(TAG, "Could not parse maximum CPU frequency!");
             Log.w(TAG, "Failed to parse: " + line);
         } finally {
-            if (br != null)
-                try {
-                    br.close();
-                } catch (IOException ignored) {
-                }
-            if (fileReader != null)
-                try {
-                    fileReader.close();
-                } catch (IOException ignored) {
-                }
+            close(br);
+            close(fileReader);
         }
 
         // Store into MachineSpecs
@@ -349,16 +334,10 @@ public class VLCUtil {
                     return null;
             }
             return elf;
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            try {
-                if (in != null)
-                    in.close();
-            } catch (IOException e) {
-            }
+            close(in);
         }
         return null;
     }
@@ -523,12 +502,16 @@ public class VLCUtil {
         return Uri.parse(sb.toString());
     }
 
+    public static String encodeVLCUri(@NonNull Uri uri) {
+        return encodeVLCString(uri.toString());
+    }
+
     /**
-     * VLC authorize only "-._~" in Mrl format, android Uri authorize "_-!.~'()*".
+     * VLC only acccepts "-._~" in Mrl format, android Uri accepts "_-!.~'()*".
      * Therefore, encode the characters authorized by Android Uri when creating a mrl from an Uri.
      */
-    public static String locationFromUri(Uri uri) {
-        final char array[] = uri.toString().toCharArray();
+    public static String encodeVLCString(@NonNull String mrl) {
+        final char[] array = mrl.toCharArray();
         final StringBuilder sb = new StringBuilder(array.length * 2);
 
         for (final char c : array) {
@@ -537,7 +520,6 @@ public class VLCUtil {
             else
                 sb.append(c);
         }
-
         return sb.toString();
     }
 
@@ -562,6 +544,14 @@ public class VLCUtil {
         media.addOption(":no-osd");
         media.addOption(":input-fast-seek");
         return nativeGetThumbnail(media, i_width, i_height);
+    }
+
+    private static void close(Closeable closeable) {
+        if (closeable != null)
+            try {
+                closeable.close();
+            } catch (IOException ignored) {
+            }
     }
 
     private static native byte[] nativeGetThumbnail(Media media, int i_width, int i_height);

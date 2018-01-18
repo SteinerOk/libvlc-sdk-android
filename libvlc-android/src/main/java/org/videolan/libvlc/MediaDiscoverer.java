@@ -127,7 +127,7 @@ public class MediaDiscoverer extends VLCObject<MediaDiscoverer.Event> {
 
     private native void nativeStop();
 
-    public interface EventListener extends VLCEvent.Listener<MediaDiscoverer.Event> {
+    public interface EventListener extends VLCEvent.Listener<Event> {
     }
 
     public static class Event extends VLCEvent {
@@ -144,6 +144,7 @@ public class MediaDiscoverer extends VLCObject<MediaDiscoverer.Event> {
         public final String name;
         public final String longName;
         public final int category;
+
         private Description(String name, String longName, int category) {
             this.name = name;
             this.longName = longName;

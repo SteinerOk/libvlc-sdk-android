@@ -53,11 +53,6 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
     private String mAudioOutput = "android_audiotrack";
     private String mAudioOutputDevice = null;
     private boolean mAudioPlugRegistered = false;
-    private String mAudioPlugOutputDevice = "stereo";
-    private final BroadcastReceiver mAudioPlugReceiver =
-            AndroidUtil.isLolliPopOrLater && !AndroidUtil.isMarshMallowOrLater ? createAudioPlugReceiver() : null;
-    private final AudioDeviceCallback mAudioDeviceCallback =
-            AndroidUtil.isMarshMallowOrLater ? createAudioDeviceCallback() : null;
     private final AWindow mWindow = new AWindow(new AWindow.SurfaceCallback() {
         @Override
         public void onSurfacesCreated(AWindow vout) {
@@ -86,6 +81,12 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
                 setVideoTrackEnabled(false);
         }
     });
+    private String mAudioPlugOutputDevice = "stereo";
+    private final BroadcastReceiver mAudioPlugReceiver =
+            AndroidUtil.isLolliPopOrLater && !AndroidUtil.isMarshMallowOrLater ? createAudioPlugReceiver() : null;
+    private final AudioDeviceCallback mAudioDeviceCallback =
+            AndroidUtil.isMarshMallowOrLater ? createAudioDeviceCallback() : null;
+
     /**
      * Create an empty MediaPlayer
      *
@@ -95,6 +96,7 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
         super(libVLC);
         nativeNewFromLibVlc(libVLC, mWindow);
     }
+
     /**
      * Create a MediaPlayer from a Media
      *
@@ -146,6 +148,8 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
     }
 
     private long getEncodingFlags(int encodings[]) {
+        if (encodings == null)
+            return 0;
         long encodingFlags = 0;
         for (int encoding : encodings) {
             if (isEncoded(encoding))
@@ -511,10 +515,10 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
         if (!enabled) {
             setVideoTrack(-1);
         } else if (getVideoTrack() == -1) {
-            final MediaPlayer.TrackDescription tracks[] = getVideoTracks();
+            final TrackDescription tracks[] = getVideoTracks();
 
             if (tracks != null) {
-                for (MediaPlayer.TrackDescription track : tracks) {
+                for (TrackDescription track : tracks) {
                     if (track.id != -1) {
                         setVideoTrack(track.id);
                         break;
@@ -669,18 +673,18 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
     /**
      * Add a slave (or subtitle) to the current media player.
      *
-     * @param type see {@link org.videolan.libvlc.Media.Slave.Type}
+     * @param type see {@link Media.Slave.Type}
      * @param uri  a valid RFC 2396 Uri
      * @return true on success.
      */
     public boolean addSlave(int type, Uri uri, boolean select) {
-        return nativeAddSlave(type, VLCUtil.locationFromUri(uri), select);
+        return nativeAddSlave(type, VLCUtil.encodeVLCUri(uri), select);
     }
 
     /**
      * Add a slave (or subtitle) to the current media player.
      *
-     * @param type see {@link org.videolan.libvlc.Media.Slave.Type}
+     * @param type see {@link Media.Slave.Type}
      * @param path a local path
      * @return true on success.
      */
@@ -826,6 +830,7 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
         if (mMedia != null)
             mMedia.release();
+        mVoutCount = 0;
         nativeRelease();
     }
 
@@ -898,7 +903,7 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
     private native boolean nativeSetEqualizer(Equalizer equalizer);
 
-    public interface EventListener extends VLCEvent.Listener<MediaPlayer.Event> {
+    public interface EventListener extends VLCEvent.Listener<Event> {
     }
 
     public static class Event extends VLCEvent {

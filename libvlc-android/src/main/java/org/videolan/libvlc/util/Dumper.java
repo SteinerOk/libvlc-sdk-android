@@ -33,6 +33,7 @@ public class Dumper {
     private final LibVLC mLibVLC;
     private final MediaPlayer mMediaPlayer;
     private final Listener mListener;
+
     /**
      * Create a Dumper that will download an Uri into a local filesystem path
      *
