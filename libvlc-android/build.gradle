@@ -38,8 +38,8 @@ android {
 }
 
 dependencies {
-    api fileTree(include: ['*.jar'], dir: 'libs')
-    api 'com.android.support:support-annotations:27.0.2'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:support-annotations:27.0.2'
 }
 
-//apply from: 'gradle-bintray-publish.gradle'
+apply from: 'gradle-bintray-publish.gradle'

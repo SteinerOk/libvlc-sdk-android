@@ -22,8 +22,11 @@ android.libraryVariants.all { variant ->
             title = "Documentation for $project.android.defaultConfig.versionName v$project.android.defaultConfig.versionCode"
             description = "Generates Javadoc for $variant.name."
             group = 'Documentation'
-            source = variant.javaCompile.source
-            classpath = files(variant.javaCompile.classpath.files, project.android.getBootClasspath(), variant.javaCompile.destinationDir)
+
+            // source = variant.javaCompile.source
+            // classpath = files(variant.javaCompile.classpath.files, project.android.getBootClasspath(), variant.javaCompile.destinationDir)
+            source = android.sourceSets.main.java.sourceFiles
+            classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 
             options {
                 links "http://docs.oracle.com/javase/7/docs/api/"
@@ -34,6 +37,7 @@ android.libraryVariants.all { variant ->
 
             exclude '**/BuildConfig.java'
             exclude '**/R.java'
+            exclude '**/internal/**'
         }
 
         task("generate${variant.name.capitalize()}JavadocJar", type: Jar) {

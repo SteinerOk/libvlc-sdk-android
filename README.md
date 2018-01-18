@@ -11,10 +11,10 @@ Grab the latest AAR via Maven:
 <dependency>
   <groupId>com.steiner.videolan</groupId>
   <artifactId>libvlc-android</artifactId>
-  <version>2.1.6-beta</version>
+  <version>2.5.17</version>
 </dependency>
 ```
 or Gradle:
 ```groovy
-compile 'com.steiner.videolan:libvlc-android:2.1.6-beta'
+implementation 'com.steiner.videolan:libvlc-android:2.5.17'
 ```
