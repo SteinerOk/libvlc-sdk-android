@@ -329,7 +329,6 @@ public class MediaPlayer {
         public static final int MEDIA_TRACK_TYPE_AUDIO = 2;
         public static final int MEDIA_TRACK_TYPE_TIMEDTEXT = 3;
         public static final int MEDIA_TRACK_TYPE_SUBTITLE = 4;
-
         public static final Creator<TrackInfo> CREATOR = new Creator<TrackInfo>() {
             @Override
             public TrackInfo createFromParcel(Parcel in) {

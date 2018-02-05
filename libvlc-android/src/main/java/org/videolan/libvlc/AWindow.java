@@ -405,9 +405,9 @@ public class AWindow implements IVLCVout {
         }
 
         mHandler.post(new Runnable() {
-            private SurfaceHelper getSurfaceHelper(Surface surface) {
+            private AWindow.SurfaceHelper getSurfaceHelper(Surface surface) {
                 for (int id = 0; id < ID_MAX; ++id) {
-                    final SurfaceHelper surfaceHelper = mSurfaceHelpers[id];
+                    final AWindow.SurfaceHelper surfaceHelper = mSurfaceHelpers[id];
                     if (surfaceHelper != null && surfaceHelper.getSurface() == surface)
                         return surfaceHelper;
                 }
@@ -416,7 +416,7 @@ public class AWindow implements IVLCVout {
 
             @Override
             public void run() {
-                final SurfaceHelper surfaceHelper = getSurfaceHelper(surface);
+                final AWindow.SurfaceHelper surfaceHelper = getSurfaceHelper(surface);
                 final SurfaceHolder surfaceHolder = surfaceHelper != null ? surfaceHelper.getSurfaceHolder() : null;
 
                 if (surfaceHolder != null) {

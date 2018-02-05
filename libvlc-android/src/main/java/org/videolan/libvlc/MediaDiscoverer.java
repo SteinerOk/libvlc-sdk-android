@@ -127,7 +127,7 @@ public class MediaDiscoverer extends VLCObject<MediaDiscoverer.Event> {
 
     private native void nativeStop();
 
-    public interface EventListener extends VLCEvent.Listener<Event> {
+    public interface EventListener extends VLCEvent.Listener<MediaDiscoverer.Event> {
     }
 
     public static class Event extends VLCEvent {

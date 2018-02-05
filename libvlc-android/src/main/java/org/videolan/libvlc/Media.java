@@ -568,7 +568,7 @@ public class Media extends VLCObject<Media.Event> {
 
     private native Stats nativeGetStats();
 
-    public interface EventListener extends VLCEvent.Listener<Event> {
+    public interface EventListener extends VLCEvent.Listener<Media.Event> {
     }
 
     public static class Event extends VLCEvent {
@@ -595,7 +595,7 @@ public class Media extends VLCObject<Media.Event> {
         /**
          * Get the ParsedStatus in case of {@link Event#ParsedChanged} event
          *
-         * @return {@link ParsedStatus}
+         * @return {@link Media.ParsedStatus}
          */
         public int getParsedStatus() {
             return (int) arg1;

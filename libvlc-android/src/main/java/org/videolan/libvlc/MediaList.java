@@ -188,7 +188,7 @@ public class MediaList extends VLCObject<MediaList.Event> {
 
     private native void nativeUnlock();
 
-    public interface EventListener extends VLCEvent.Listener<Event> {
+    public interface EventListener extends VLCEvent.Listener<MediaList.Event> {
     }
 
     public static class Event extends VLCEvent {

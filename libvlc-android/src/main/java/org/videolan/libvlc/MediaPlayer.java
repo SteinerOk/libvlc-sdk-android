@@ -257,6 +257,14 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
         return mWindow;
     }
 
+    public int setRenderer(RendererItem item) {
+        return nativeSetRenderer(item);
+    }
+
+    public synchronized boolean hasMedia() {
+        return mMedia != null;
+    }
+
     /**
      * Get the Media used by this MediaPlayer. This Media should be released with {@link #release()}.
      */
@@ -515,10 +523,10 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
         if (!enabled) {
             setVideoTrack(-1);
         } else if (getVideoTrack() == -1) {
-            final TrackDescription tracks[] = getVideoTracks();
+            final MediaPlayer.TrackDescription tracks[] = getVideoTracks();
 
             if (tracks != null) {
-                for (TrackDescription track : tracks) {
+                for (MediaPlayer.TrackDescription track : tracks) {
                     if (track.id != -1) {
                         setVideoTrack(track.id);
                         break;
@@ -673,7 +681,7 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
     /**
      * Add a slave (or subtitle) to the current media player.
      *
-     * @param type see {@link Media.Slave.Type}
+     * @param type see {@link org.videolan.libvlc.Media.Slave.Type}
      * @param uri  a valid RFC 2396 Uri
      * @return true on success.
      */
@@ -684,7 +692,7 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
     /**
      * Add a slave (or subtitle) to the current media player.
      *
-     * @param type see {@link Media.Slave.Type}
+     * @param type see {@link org.videolan.libvlc.Media.Slave.Type}
      * @param path a local path
      * @return true on success.
      */
@@ -847,6 +855,8 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
     private native void nativeStop();
 
+    private native int nativeSetRenderer(RendererItem item);
+
     private native void nativeSetVideoTitleDisplay(int position, int timeout);
 
     private native float nativeGetScale();
@@ -903,7 +913,7 @@ public class MediaPlayer extends VLCObject<MediaPlayer.Event> {
 
     private native boolean nativeSetEqualizer(Equalizer equalizer);
 
-    public interface EventListener extends VLCEvent.Listener<Event> {
+    public interface EventListener extends VLCEvent.Listener<MediaPlayer.Event> {
     }
 
     public static class Event extends VLCEvent {
