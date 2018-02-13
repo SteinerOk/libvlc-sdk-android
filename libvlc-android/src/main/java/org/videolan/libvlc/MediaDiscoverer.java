@@ -144,7 +144,6 @@ public class MediaDiscoverer extends VLCObject<MediaDiscoverer.Event> {
         public final String name;
         public final String longName;
         public final int category;
-
         private Description(String name, String longName, int category) {
             this.name = name;
             this.longName = longName;

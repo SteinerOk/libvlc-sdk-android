@@ -29,7 +29,6 @@ public class MediaList extends VLCObject<MediaList.Event> {
     private final SparseArray<Media> mMediaArray = new SparseArray<Media>();
     private int mCount = 0;
     private boolean mLocked = false;
-
     /**
      * Create a MediaList from libVLC
      *
@@ -40,7 +39,6 @@ public class MediaList extends VLCObject<MediaList.Event> {
         nativeNewFromLibVlc(libVLC);
         init();
     }
-
     /**
      * @param md Should not be released
      */

@@ -695,7 +695,6 @@ public class Media extends VLCObject<Media.Event> {
         public final int bitrate;
         public final String language;
         public final String description;
-
         private Track(int type, String codec, String originalCodec, int id, int profile,
                       int level, int bitrate, String language, String description) {
             this.type = type;
@@ -745,7 +744,6 @@ public class Media extends VLCObject<Media.Event> {
         public final int frameRateDen;
         public final int orientation;
         public final int projection;
-
         private VideoTrack(String codec, String originalCodec, int id, int profile,
                            int level, int bitrate, String language, String description,
                            int height, int width, int sarNum, int sarDen, int frameRateNum, int frameRateDen,
@@ -843,7 +841,6 @@ public class Media extends VLCObject<Media.Event> {
          */
         public final int priority;
         public final String uri;
-
         public Slave(int type, int priority, String uri) {
             this.type = type;
             this.priority = priority;

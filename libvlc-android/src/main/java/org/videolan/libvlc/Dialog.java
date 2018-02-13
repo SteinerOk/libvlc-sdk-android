@@ -37,7 +37,6 @@ public abstract class Dialog {
     private final String mTitle;
     protected String mText;
     private Object mContext;
-
     protected Dialog(int type, String title, String text) {
         mType = type;
         mTitle = title;
