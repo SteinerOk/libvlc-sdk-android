@@ -232,7 +232,7 @@ public class MediaPlayer {
 
     public TrackInfo[] getTrackInfo() throws IllegalStateException {
         //FIXME
-        TrackInfo trackInfo[] = new TrackInfo[1];
+        TrackInfo[] trackInfo = new TrackInfo[1];
         return trackInfo;
     }
 
@@ -303,15 +303,15 @@ public class MediaPlayer {
     }
 
     public interface OnSeekCompleteListener {
-        public void onSeekComplete(MediaPlayer mp);
+        void onSeekComplete(MediaPlayer mp);
     }
 
     public interface OnVideoSizeChangedListener {
-        public void onVideoSizeChanged(MediaPlayer mp, int width, int height);
+        void onVideoSizeChanged(MediaPlayer mp, int width, int height);
     }
 
     public interface OnTimedTextListener {
-        public void onTimedText(MediaPlayer mp, TimedText text);
+        void onTimedText(MediaPlayer mp, TimedText text);
     }
 
     public interface OnErrorListener {
@@ -329,17 +329,6 @@ public class MediaPlayer {
         public static final int MEDIA_TRACK_TYPE_AUDIO = 2;
         public static final int MEDIA_TRACK_TYPE_TIMEDTEXT = 3;
         public static final int MEDIA_TRACK_TYPE_SUBTITLE = 4;
-        public static final Creator<TrackInfo> CREATOR = new Creator<TrackInfo>() {
-            @Override
-            public TrackInfo createFromParcel(Parcel in) {
-                return new TrackInfo(in);
-            }
-
-            @Override
-            public TrackInfo[] newArray(int size) {
-                return new TrackInfo[size];
-            }
-        };
 
         TrackInfo(Parcel in) {
         }

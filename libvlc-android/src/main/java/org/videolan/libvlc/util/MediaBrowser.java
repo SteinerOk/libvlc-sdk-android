@@ -22,8 +22,9 @@ package org.videolan.libvlc.util;
 
 import android.net.Uri;
 import android.os.Handler;
-import android.support.annotation.MainThread;
 import android.util.Log;
+
+import androidx.annotation.MainThread;
 
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.Media;
@@ -170,7 +171,7 @@ public class MediaBrowser {
     public void discoverNetworkShares() {
         reset();
 
-        final MediaDiscoverer.Description descriptions[] =
+        final MediaDiscoverer.Description[] descriptions =
                 MediaDiscoverer.list(mLibVlc, MediaDiscoverer.Description.Category.Lan);
         if (descriptions == null)
             return;

@@ -1,4 +1,4 @@
-<manifest package="org.videolan.libvlc">
+<manifest package="org.videolan">
 
     <application />
 </manifest>

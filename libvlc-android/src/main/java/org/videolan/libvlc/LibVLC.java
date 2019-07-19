@@ -21,10 +21,8 @@
 package org.videolan.libvlc;
 
 import android.content.Context;
-import android.os.Build;
 import android.util.Log;
 
-import org.videolan.libvlc.util.AndroidUtil;
 import org.videolan.libvlc.util.HWDecoderUtil;
 
 import java.util.ArrayList;
@@ -71,20 +69,6 @@ public class LibVLC extends VLCObject<LibVLC.Event> {
                 options.add("RV16");
             }
         }
-
-        /* XXX: HACK to remove when we drop 2.3 support: force android_display vout */
-        if (!AndroidUtil.isHoneycombOrLater) {
-            boolean setVout = true;
-            for (String option : options) {
-                if (option.startsWith("--vout")) {
-                    setVout = false;
-                    break;
-                }
-            }
-            if (setVout)
-                options.add("--vout=android_display,none");
-        }
-
         nativeNew(options.toArray(new String[options.size()]), context.getDir("vlc", Context.MODE_PRIVATE).getAbsolutePath());
     }
 
@@ -100,44 +84,10 @@ public class LibVLC extends VLCObject<LibVLC.Event> {
             return;
         sLoaded = true;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD_MR1
-                && Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            try {
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.HONEYCOMB_MR1)
-                    System.loadLibrary("anw.10");
-                else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.HONEYCOMB_MR2)
-                    System.loadLibrary("anw.13");
-                else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR1)
-                    System.loadLibrary("anw.14");
-                else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT_WATCH)
-                    System.loadLibrary("anw.18");
-                else
-                    System.loadLibrary("anw.21");
-            } catch (Throwable t) {
-                Log.d(TAG, "anw library not loaded");
-            }
-
-            try {
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.GINGERBREAD_MR1)
-                    System.loadLibrary("iomx.10");
-                else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.HONEYCOMB_MR2)
-                    System.loadLibrary("iomx.13");
-                else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR1)
-                    System.loadLibrary("iomx.14");
-                else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR2)
-                    System.loadLibrary("iomx.18");
-                else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.KITKAT)
-                    System.loadLibrary("iomx.19");
-            } catch (Throwable t) {
-                // No need to warn if it isn't found, when we intentionally don't build these except for debug
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.ICE_CREAM_SANDWICH_MR1)
-                    Log.w(TAG, "Unable to load the iomx library: " + t);
-            }
-        }
-
         try {
+            System.loadLibrary("c++_shared");
+            System.loadLibrary("vlc");
             System.loadLibrary("vlcjni");
-            System.loadLibrary("jniloader");
         } catch (UnsatisfiedLinkError ule) {
             Log.e(TAG, "Can't load vlcjni library: " + ule);
             /// FIXME Alert user

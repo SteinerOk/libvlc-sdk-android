@@ -23,11 +23,12 @@ package org.videolan.libvlc;
 import android.annotation.TargetApi;
 import android.graphics.SurfaceTexture;
 import android.os.Build;
-import android.support.annotation.MainThread;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
+
+import androidx.annotation.MainThread;
 
 @SuppressWarnings("unused")
 public interface IVLCVout {
@@ -191,6 +192,12 @@ public interface IVLCVout {
          * video layout. The implementation should take care of changing the surface
          * LayoutsParams accordingly. If width and height are 0, LayoutParams should be reset to the
          * initial state (MATCH_PARENT).
+         * <p>
+         * By default, "android-display" is used when doing HW decoding and if Video and Subtitles
+         * surfaces are correctly attached. You could force "--vout=android-display" from LibVLC
+         * arguments if you want to use this module without subtitles. Otherwise, the "opengles2"
+         * module will be used (for SW and HW decoding) and this callback will always send a size of
+         * 0.
          *
          * @param vlcVout       vlcVout
          * @param width         Frame width

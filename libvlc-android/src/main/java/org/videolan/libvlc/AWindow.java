@@ -25,14 +25,12 @@ import android.graphics.SurfaceTexture;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.MainThread;
-import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.TextureView;
 
-import org.videolan.libvlc.util.AndroidUtil;
+import androidx.annotation.MainThread;
 
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -62,8 +60,7 @@ public class AWindow implements IVLCVout {
     private long mCallbackNativeHandle = 0;
     private int mMouseAction = -1, mMouseButton = -1, mMouseX = -1, mMouseY = -1;
     private int mWindowWidth = -1, mWindowHeight = -1;
-    private SurfaceTextureThread mSurfaceTextureThread = AndroidUtil.isJellyBeanOrLater ?
-            new SurfaceTextureThread() : null;
+    private SurfaceTextureThread mSurfaceTextureThread = new SurfaceTextureThread();
 
     /**
      * Create an AWindow
@@ -125,8 +122,6 @@ public class AWindow implements IVLCVout {
     }
 
     private void setView(int id, TextureView view) {
-        if (!AndroidUtil.isICSOrLater)
-            throw new IllegalArgumentException("TextureView not implemented in this android version");
         ensureInitState();
         if (view == null)
             throw new NullPointerException("view is null");
@@ -229,8 +224,7 @@ public class AWindow implements IVLCVout {
             cb.onSurfacesDestroyed(this);
         if (mSurfaceCallback != null)
             mSurfaceCallback.onSurfacesDestroyed(this);
-        if (AndroidUtil.isJellyBeanOrLater)
-            mSurfaceTextureThread.release();
+        mSurfaceTextureThread.release();
     }
 
     @Override
@@ -382,7 +376,7 @@ public class AWindow implements IVLCVout {
     }
 
     /**
-     * This method is only used for ICS and before since ANativeWindow_setBuffersGeometry doesn't work before.
+     * This method is only used for HoneyComb and before since ANativeWindow_setBuffersGeometry doesn't work before.
      * It is synchronous.
      *
      * @param surface surface returned by getVideoSurface or getSubtitlesSurface
@@ -393,57 +387,7 @@ public class AWindow implements IVLCVout {
      */
     @SuppressWarnings("unused") /* used by JNI */
     private boolean setBuffersGeometry(final Surface surface, final int width, final int height, final int format) {
-        if (AndroidUtil.isICSOrLater)
-            return false;
-        if (width * height == 0)
-            return false;
-        Log.d(TAG, "configureSurface: " + width + "x" + height);
-
-        synchronized (mNativeLock) {
-            if (mNativeLock.buffersGeometryConfigured || mNativeLock.buffersGeometryAbort)
-                return false;
-        }
-
-        mHandler.post(new Runnable() {
-            private AWindow.SurfaceHelper getSurfaceHelper(Surface surface) {
-                for (int id = 0; id < ID_MAX; ++id) {
-                    final AWindow.SurfaceHelper surfaceHelper = mSurfaceHelpers[id];
-                    if (surfaceHelper != null && surfaceHelper.getSurface() == surface)
-                        return surfaceHelper;
-                }
-                return null;
-            }
-
-            @Override
-            public void run() {
-                final AWindow.SurfaceHelper surfaceHelper = getSurfaceHelper(surface);
-                final SurfaceHolder surfaceHolder = surfaceHelper != null ? surfaceHelper.getSurfaceHolder() : null;
-
-                if (surfaceHolder != null) {
-                    if (surfaceHolder.getSurface().isValid()) {
-                        if (format != 0)
-                            surfaceHolder.setFormat(format);
-                        surfaceHolder.setFixedSize(width, height);
-                    }
-                }
-
-                synchronized (mNativeLock) {
-                    mNativeLock.buffersGeometryConfigured = true;
-                    mNativeLock.notifyAll();
-                }
-            }
-        });
-
-        try {
-            synchronized (mNativeLock) {
-                while (!mNativeLock.buffersGeometryConfigured && !mNativeLock.buffersGeometryAbort)
-                    mNativeLock.wait();
-                mNativeLock.buffersGeometryConfigured = false;
-            }
-        } catch (InterruptedException e) {
-            return false;
-        }
-        return true;
+        return false;
     }
 
     /**
@@ -480,7 +424,7 @@ public class AWindow implements IVLCVout {
      */
     @SuppressWarnings("unused") /* used by JNI */
     boolean SurfaceTexture_attachToGLContext(int texName) {
-        return AndroidUtil.isJellyBeanOrLater && mSurfaceTextureThread.attachToGLContext(texName);
+        return mSurfaceTextureThread.attachToGLContext(texName);
     }
 
     /**
@@ -509,7 +453,7 @@ public class AWindow implements IVLCVout {
         return mSurfaceTextureThread.getSurface();
     }
 
-    interface SurfaceCallback {
+    public interface SurfaceCallback {
         @MainThread
         void onSurfacesCreated(AWindow vout);
 
@@ -673,8 +617,7 @@ public class AWindow implements IVLCVout {
                 onSurfaceDestroyed();
             }
         };
-        private final TextureView.SurfaceTextureListener mSurfaceTextureListener =
-                AndroidUtil.isICSOrLater ? createSurfaceTextureListener() : null;
+        private final TextureView.SurfaceTextureListener mSurfaceTextureListener = createSurfaceTextureListener();
 
         private SurfaceHelper(int id, SurfaceView surfaceView) {
             mId = id;

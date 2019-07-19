@@ -19,17 +19,6 @@ public class RendererItem extends VLCObject<RendererItem.Event> {
     final int flags;
     private final long ref;
 
-    RendererItem(RendererDiscoverer rd, long ref) {
-        super(rd);
-        final RendererItem item = nativeNewItem(rd, ref);
-        name = item == null ? null : item.name;
-        displayName = item == null ? null : item.displayName;
-        this.type = item == null ? null : item.type;
-        this.iconUrl = item == null ? null : item.iconUrl;
-        this.flags = item == null ? 0 : item.flags;
-        this.ref = item == null ? ref : item.ref;
-    }
-
     RendererItem(String name, String type, String iconUrl, int flags, long ref) {
         final int index = name.lastIndexOf('-');
         this.name = name;
@@ -54,8 +43,6 @@ public class RendererItem extends VLCObject<RendererItem.Event> {
     protected void onReleaseNative() {
         nativeReleaseItem();
     }
-
-    private native RendererItem nativeNewItem(RendererDiscoverer rd, long ref);
 
     private native void nativeReleaseItem();
 

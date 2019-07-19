@@ -20,10 +20,15 @@
 
 package org.videolan.libvlc;
 
-import android.support.v4.util.LongSparseArray;
+import androidx.collection.LongSparseArray;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class RendererDiscoverer extends VLCObject<RendererDiscoverer.Event> {
     private final static String TAG = "LibVLC/RendererDiscoverer";
+
+    final List<RendererItem> mRenderers = new ArrayList<>();
     private final LongSparseArray<RendererItem> index = new LongSparseArray<>();
 
     /**
@@ -71,6 +76,7 @@ public class RendererDiscoverer extends VLCObject<RendererDiscoverer.Event> {
         if (isReleased()) throw new IllegalStateException("MediaDiscoverer is released");
         setEventListener(null);
         nativeStop();
+        release();
     }
 
     public void setEventListener(EventListener listener) {
@@ -90,19 +96,26 @@ public class RendererDiscoverer extends VLCObject<RendererDiscoverer.Event> {
     }
 
     private synchronized RendererItem insertItemFromEvent(long arg1) {
-        final RendererItem item = new RendererItem(this, arg1);
+        final RendererItem item = nativeNewItem(arg1);
         index.put(arg1, item);
+        mRenderers.add(item);
         return item;
     }
 
     private synchronized RendererItem removeItemFromEvent(long arg1) {
         final RendererItem item = index.get(arg1);
-        if (item != null) index.remove(arg1);
+        if (item != null) {
+            index.remove(arg1);
+            mRenderers.remove(item);
+            item.release();
+        }
         return item;
     }
 
     @Override
     protected void onReleaseNative() {
+        for (RendererItem item : mRenderers) item.release();
+        mRenderers.clear();
         nativeRelease();
     }
 
@@ -115,6 +128,8 @@ public class RendererDiscoverer extends VLCObject<RendererDiscoverer.Event> {
 
     private native void nativeStop();
 
+    private native RendererItem nativeNewItem(long ref);
+
     public interface EventListener extends VLCEvent.Listener<RendererDiscoverer.Event> {
     }
 
@@ -123,15 +138,22 @@ public class RendererDiscoverer extends VLCObject<RendererDiscoverer.Event> {
         public static final int ItemAdded = 0x502;
         public static final int ItemDeleted = 0x503;
 
-        private RendererItem item;
+        private final RendererItem item;
 
         protected Event(int type, long nativeHolder, RendererItem item) {
             super(type, nativeHolder);
             this.item = item;
+            item.retain();
         }
 
         public RendererItem getItem() {
             return item;
+        }
+
+        @Override
+        void release() {
+            item.release();
+            super.release();
         }
     }
 

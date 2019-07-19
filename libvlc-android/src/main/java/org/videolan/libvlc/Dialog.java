@@ -22,7 +22,8 @@ package org.videolan.libvlc;
 
 import android.os.Handler;
 import android.os.Looper;
-import android.support.annotation.MainThread;
+
+import androidx.annotation.MainThread;
 
 @SuppressWarnings("unused, JniMissingFunction")
 public abstract class Dialog {
@@ -120,7 +121,7 @@ public abstract class Dialog {
             @Override
             public void run() {
                 if (dialog instanceof IdDialog)
-                    ((IdDialog) dialog).dismiss();
+                    dialog.dismiss();
                 if (sCallbacks != null && dialog != null)
                     sCallbacks.onCanceled(dialog);
             }
@@ -282,6 +283,7 @@ public abstract class Dialog {
             mId = id;
         }
 
+        @Override
         @MainThread
         public void dismiss() {
             if (mId != 0) {
